@@ -33,6 +33,7 @@ import Badges from './Badges';
 import Followerings from './Followerings';
 import MutualFollowers from './MutualFollowers';
 import MutualFollowersList from './MutualFollowers/List';
+import FlowingBalance from './../Shared/FlowingBalance';
 
 interface Props {
   profile: Profile;
@@ -131,9 +132,14 @@ const Details: FC<Props> = ({ profile }) => {
                   <Follow profile={profile} setFollowing={setFollowing} showText />
                   {currentProfile && <Message onClick={onMessageClick} />}
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 mt-2">
                   <StreamFollow profile={profile} setFollowing={setFollowing} showText />
-                  {currentProfile && <Message onClick={onMessageClick} />}
+                </div>
+                <div className="flex space-x-2 mt-2">
+                  <span className="font-bold">USDCx: </span><FlowingBalance balance="100000" balanceTimestamp={11111111} flowRate="-100000000000000" />
+                </div>
+                <div className="flex space-x-2 mt-1">
+                  <span className="font-bold">${(profile?.handle).toUpperCase()}x: </span><FlowingBalance balance="100000" balanceTimestamp={11111111} flowRate={"100000000000000"} />
                 </div>
               </>
             )

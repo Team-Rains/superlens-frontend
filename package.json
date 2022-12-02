@@ -27,6 +27,7 @@
   },
   "packageManager": "yarn@1.22.19",
   "dependencies": {
-    "@lens-protocol/sdk-gated": "^1.1.2"
+    "@lens-protocol/sdk-gated": "^1.1.2",
+    "decimal.js": "^10.4.2"
   }
 }
