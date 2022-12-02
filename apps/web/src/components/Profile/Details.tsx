@@ -3,6 +3,7 @@ import Follow from '@components/Shared/Follow';
 import Markup from '@components/Shared/Markup';
 import Slug from '@components/Shared/Slug';
 import SuperFollow from '@components/Shared/SuperFollow';
+import StreamFollow from '@components/Shared/StreamFollow';
 import Unfollow from '@components/Shared/Unfollow';
 import ProfileStaffTool from '@components/StaffTools/Panels/Profile';
 import { Button } from '@components/UI/Button';
@@ -125,10 +126,16 @@ const Details: FC<Props> = ({ profile }) => {
                 {currentProfile && <Message onClick={onMessageClick} />}
               </div>
             ) : (
-              <div className="flex space-x-2">
-                <Follow profile={profile} setFollowing={setFollowing} showText />
-                {currentProfile && <Message onClick={onMessageClick} />}
-              </div>
+              <>
+                <div className="flex space-x-2">
+                  <Follow profile={profile} setFollowing={setFollowing} showText />
+                  {currentProfile && <Message onClick={onMessageClick} />}
+                </div>
+                <div className="flex space-x-2">
+                  <StreamFollow profile={profile} setFollowing={setFollowing} showText />
+                  {currentProfile && <Message onClick={onMessageClick} />}
+                </div>
+              </>
             )
           ) : null}
         </div>
