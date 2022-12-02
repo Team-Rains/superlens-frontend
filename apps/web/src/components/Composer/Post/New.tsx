@@ -83,7 +83,7 @@ const NewPost: FC = () => {
           <span>What's happening?</span>
         </button>
         <Modal
-          title="Create post"
+          title="Create a gated post"
           size="md"
           show={showNewPostModal}
           onClose={() => setShowNewPostModal(false)}

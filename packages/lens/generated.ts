@@ -5682,6 +5682,7 @@ export type CreateMirrorViaDispatcherMutation = {
     | { __typename?: 'RelayerResult'; txHash: any; txId: any };
 };
 
+// this is the input variables passed to the CreatePostTypedDataMutation
 export type CreatePostTypedDataMutationVariables = Exact<{
   options?: InputMaybe<TypedDataOptions>;
   request: CreatePublicPostRequest;
@@ -20812,6 +20813,8 @@ export type CreatePostTypedDataMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
+
+// function to finally create the post using typed data using a mutation with lens Graph query
 export function useCreatePostTypedDataMutation(
   baseOptions?: Apollo.MutationHookOptions<CreatePostTypedDataMutation, CreatePostTypedDataMutationVariables>
 ) {

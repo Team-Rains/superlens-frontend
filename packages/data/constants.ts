@@ -5,7 +5,8 @@ import getEnvConfig from './utils/getEnvConfig';
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // Lens Network
-export const LENS_NETWORK = process.env.NEXT_PUBLIC_LENS_NETWORK ?? 'mainnet';
+// export const LENS_NETWORK = process.env.NEXT_PUBLIC_LENS_NETWORK ?? 'mainnet';
+export const LENS_NETWORK = 'testnet';
 export const MAINNET_API_URL = 'https://api.lens.dev';
 export const TESTNET_API_URL = 'https://api-mumbai.lens.dev';
 export const SANDBOX_API_URL = 'https://api-sandbox-mumbai.lens.dev';

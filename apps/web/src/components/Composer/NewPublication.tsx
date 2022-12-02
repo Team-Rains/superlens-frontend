@@ -218,6 +218,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
   });
 
   const [createPostTypedData] = useCreatePostTypedDataMutation({
+    // the metadata is created and the post function is called in this hook
     onCompleted: ({ createPostTypedData }) => typedDataGenerator(createPostTypedData),
     onError
   });
@@ -299,6 +300,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
     return isAudioPublication ? audioPublication.coverMimeType : attachments[0]?.type;
   };
 
+  // create publication function
   const createPublication = async () => {
     if (!currentProfile) {
       return toast.error(SIGN_WALLET);
@@ -307,7 +309,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
     try {
       setIsSubmitting(true);
 
-      if (isAudioPublication) {
+      if (isAudioPublication) { // checking if the publication is an audio
         setPublicationContentError('');
         const parsedData = AudioPublicationSchema.safeParse(audioPublication);
         if (!parsedData.success) {
@@ -346,7 +348,8 @@ const NewPublication: FC<Props> = ({ publication }) => {
         });
       }
 
-      const id = await uploadToArweave({
+      //coding the metadata
+      const metadata = {
         version: '2.0.0',
         metadata_id: uuid(),
         description: trimify(publicationContent),
@@ -364,7 +367,13 @@ const NewPublication: FC<Props> = ({ publication }) => {
         locale: getUserLocale(),
         createdOn: new Date(),
         appId: APP_NAME
-      });
+      }
+
+      // coding the post metadata here
+      // sending the metadata to Arweave and getting the CID back
+      const id = await uploadToArweave(metadata);
+
+      console.log('This is the metadata id ', id);
 
       const request = {
         profileId: currentProfile?.id,
@@ -385,6 +394,8 @@ const NewPublication: FC<Props> = ({ publication }) => {
               }
       };
 
+      // initialise the gated SDK here
+
       if (currentProfile?.dispatcher?.canUseRelay) {
         await createViaDispatcher(request);
       } else {
@@ -397,6 +408,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
           });
         } else {
           await createPostTypedData({
+            // this function will create post without dispatcher
             variables: { options: { overrideSigNonce: userSigNonce }, request }
           });
         }
