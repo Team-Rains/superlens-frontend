@@ -323,6 +323,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
     if (!currentProfile) {
       return toast.error(SIGN_WALLET);
     }
+    console.log(currentProfile);
 
     try {
       setIsSubmitting(true);
