@@ -16,7 +16,7 @@ import { Spinner } from '@components/UI/Spinner';
 import useBroadcast from '@components/utils/hooks/useBroadcast';
 import type { LensterAttachment, LensterPublication } from '@generated/types';
 import type { IGif } from '@giphy/js-types';
-import { ChatAlt2Icon, PencilAltIcon } from '@heroicons/react/outline';
+import { ChatAlt2Icon, FlagIcon, LockOpenIcon, PencilAltIcon } from '@heroicons/react/outline';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import getSignature from '@lib/getSignature';
@@ -68,6 +68,7 @@ import omitDeep from 'omit-deep';
 import Editor from './Editor';
 import { ethers, providers } from 'ethers';
 import { createNewPost } from './Post/lens';
+import { LockClosedIcon } from '@heroicons/react/solid';
 
 const Attachment = dynamic(() => import('@components/Composer/Actions/Attachment'), {
   loading: () => <div className="mb-1 w-5 h-5 rounded-lg shimmer" />
@@ -122,6 +123,8 @@ const NewPublication: FC<Props> = ({ publication }) => {
 
   const isComment = Boolean(publication);
   const isAudioPublication = ALLOWED_AUDIO_TYPES.includes(attachments[0]?.type);
+
+  const [premiumContent, setPremiumContent] = useState(false);
 
   const onCompleted = () => {
     editor.update(() => {
@@ -438,8 +441,8 @@ const NewPublication: FC<Props> = ({ publication }) => {
         },
         gated: {
           nft: nftAccessCondition,
-          encryptedSymmetricKey: encryptedMetadata?.encryptionParams.providerSpecificParams.encryptionKey,
-        },
+          encryptedSymmetricKey: encryptedMetadata?.encryptionParams.providerSpecificParams.encryptionKey
+        }
       };
 
       // if (currentProfile?.dispatcher?.canUseRelay) {
@@ -550,7 +553,16 @@ const NewPublication: FC<Props> = ({ publication }) => {
           <ReferenceSettings />
           <AccessSettings />
         </div>
-        <div className="ml-auto pt-2 sm:pt-0">
+        <div className="flex ml-auto pt-2 sm:flex pt-0">
+          <Button
+          className="mr-2"
+            icon={
+              premiumContent ? <LockClosedIcon className="w-4 h-4" /> : <LockOpenIcon className="w-4 h-4" />
+            }
+            onClick={() => setPremiumContent(!premiumContent)}
+          >
+            Premium
+          </Button>
           <Button
             disabled={isSubmitting}
             icon={
