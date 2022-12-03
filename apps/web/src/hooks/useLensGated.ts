@@ -10,9 +10,7 @@ import {
 import uploadToArweave from '@lib/uploadToArweave';
 import { useAppStore } from 'src/store/app';
 
-
 const useLensGated = () => {
-
   const currentProfile = useAppStore((state) => state.currentProfile);
 
   const uploadMetadataHandler = async (data: EncryptedMetadata): Promise<string> => {
@@ -36,14 +34,14 @@ const useLensGated = () => {
       env: LensEnvironment.Mumbai
     });
 
-    console.log("Created sdk");
+    console.log('Created sdk');
 
     await sdk.connect({
       address: currentProfile?.ownedBy,
       env: LensEnvironment.Mumbai
     });
 
-    console.log("Connected to SDK");
+    console.log('Connected to SDK');
 
     const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
       metadata,
@@ -55,12 +53,35 @@ const useLensGated = () => {
     );
     console.log('Content uri is', contentURI);
     console.log(encryptedMetadata);
-    return {contentURI, encryptedMetadata}
+    return { contentURI, encryptedMetadata };
+  };
+
+  const decryptPostMetadata = async (metadata: any) => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum!);
+
+    const sdk = await LensGatedSDK.create({
+      provider: provider,
+      signer: provider.getSigner(currentProfile?.ownedBy),
+      env: LensEnvironment.Mumbai
+    });
+
+    console.log('Created sdk');
+
+    await sdk.connect({
+      address: currentProfile?.ownedBy,
+      env: LensEnvironment.Mumbai
+    });
+
+    const { error, decrypted } = await sdk.gated.decryptMetadata(metadata);
+    console.log("An error occured ", error);
+    console.log("Decrypted metadata ", decrypted);
+    return decrypted;
   };
 
   return {
     encryptPostMetadata: encryptPostMetadata,
+    decryptPostMetadata: decryptPostMetadata,
     nftAccessCondition: nftAccessCondition
-  }
+  };
 };
 export default useLensGated;
