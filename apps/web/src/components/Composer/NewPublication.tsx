@@ -384,49 +384,48 @@ const NewPublication: FC<Props> = ({ publication }) => {
 
       console.log('Created metadata');
 
+      // check if this is a premium content or not
+
       // coding the post metadata here
       // sending the metadata to Arweave and getting the CID back
 
-      const uploadMetadataHandler = async (data: EncryptedMetadata): Promise<string> => {
-        console.log("Uploading this data to Arweave ", data);
-        const id = await uploadToArweave(data);
-        return Promise.resolve(id);
-      };
+      // const uploadMetadataHandler = async (data: EncryptedMetadata): Promise<string> => {
+      //   console.log("Uploading this data to Arweave ", data);
+      //   const id = await uploadToArweave(data);
+      //   return Promise.resolve(id);
+      // };
 
-      const nftAccessCondition: NftOwnership = {
-        contractAddress: '0xedDbE4435B941fE384CB712320ea966D19b9Ae2a',
-        chainID: 80001,
-        contractType: ContractType.Erc721
-      };
-      console.log('four');
+      // const nftAccessCondition: NftOwnership = {
+      //   contractAddress: '0xedDbE4435B941fE384CB712320ea966D19b9Ae2a',
+      //   chainID: 80001,
+      //   contractType: ContractType.Erc721
+      // };
 
       const provider = new ethers.providers.Web3Provider(window.ethereum!);
-      console.log(provider);
 
-      const sdk = await LensGatedSDK.create({
-        provider: provider,
-        signer: provider.getSigner(currentProfile.ownedBy),
-        env: LensEnvironment.Mumbai
-      });
-      console.log('six');
+      // initializing the sdk
+      // const sdk = await LensGatedSDK.create({
+      //   provider: provider,
+      //   signer: provider.getSigner(currentProfile.ownedBy),
+      //   env: LensEnvironment.Mumbai
+      // });
 
-      await sdk.connect({
-        address: currentProfile.ownedBy,
-        env: LensEnvironment.Mumbai
-      });
-      console.log('Seven');
+      // await sdk.connect({
+      //   address: currentProfile.ownedBy,
+      //   env: LensEnvironment.Mumbai
+      // });
 
-      const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
-        metadata,
-        currentProfile.id,
-        {
-          nft: nftAccessCondition
-        },
-        uploadMetadataHandler
-      );
+      // const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
+      //   metadata,
+      //   currentProfile.id,
+      //   {
+      //     nft: nftAccessCondition
+      //   },
+      //   uploadMetadataHandler
+      // );
 
-      console.log('Content uri is', contentURI);
-      console.log(encryptedMetadata);
+      // console.log('Content uri is', contentURI);
+      // console.log(encryptedMetadata);
 
       const request = {
         profileId: currentProfile?.id,
