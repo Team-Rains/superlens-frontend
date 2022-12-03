@@ -29,6 +29,7 @@ import splitSignature from '@lib/splitSignature';
 import trimify from '@lib/trimify';
 import uploadToArweave from '@lib/uploadToArweave';
 import { LensHubProxy } from 'abis';
+import useLensGated from 'src/hooks/useLensGated';
 
 import clsx from 'clsx';
 import {
@@ -125,6 +126,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
   const isAudioPublication = ALLOWED_AUDIO_TYPES.includes(attachments[0]?.type);
 
   const [premiumContent, setPremiumContent] = useState(false);
+  const hookLensGated = useLensGated();
 
   const onCompleted = () => {
     editor.update(() => {
@@ -388,6 +390,37 @@ const NewPublication: FC<Props> = ({ publication }) => {
       console.log('Created metadata');
 
       // check if this is a premium content or not
+      let request;
+      if (premiumContent) {
+        const { contentURI, encryptedMetadata } = await hookLensGated.encryptPostMetadata(metadata);
+        console.log('we got the contentURI in newpublication ', contentURI);
+        request = {
+          profileId: currentProfile?.id,
+          contentURI: `https://arweave.net/${contentURI}`,
+          collectModule: {
+            freeCollectModule: { followerOnly: false }
+          },
+          referenceModule: {
+            followerOnlyReferenceModule: false
+          },
+          gated: {
+            nft: hookLensGated.nftAccessCondition,
+            encryptedSymmetricKey: encryptedMetadata?.encryptionParams.providerSpecificParams.encryptionKey
+          }
+        };
+      } else {
+        const id = await uploadToArweave(metadata);
+        request = {
+          profileId: currentProfile?.id,
+          contentURI: `https://arweave.net/${id}`,
+          collectModule: {
+            freeCollectModule: { followerOnly: false }
+          },
+          referenceModule: {
+            followerOnlyReferenceModule: false
+          }
+        };
+      }
 
       // coding the post metadata here
       // sending the metadata to Arweave and getting the CID back
@@ -430,20 +463,20 @@ const NewPublication: FC<Props> = ({ publication }) => {
       // console.log('Content uri is', contentURI);
       // console.log(encryptedMetadata);
 
-      const request = {
-        profileId: currentProfile?.id,
-        contentURI: `https://arweave.net/${contentURI}`,
-        collectModule: {
-          freeCollectModule: { followerOnly: false }
-        },
-        referenceModule: {
-          followerOnlyReferenceModule: false
-        },
-        gated: {
-          nft: nftAccessCondition,
-          encryptedSymmetricKey: encryptedMetadata?.encryptionParams.providerSpecificParams.encryptionKey
-        }
-      };
+      // const request = {
+      //   profileId: currentProfile?.id,
+      //   contentURI: `https://arweave.net/${contentURI}`,
+      //   collectModule: {
+      //     freeCollectModule: { followerOnly: false }
+      //   },
+      //   referenceModule: {
+      //     followerOnlyReferenceModule: false
+      //   },
+      //   gated: {
+      //     nft: nftAccessCondition,
+      //     encryptedSymmetricKey: encryptedMetadata?.encryptionParams.providerSpecificParams.encryptionKey
+      //   }
+      // };
 
       // if (currentProfile?.dispatcher?.canUseRelay) {
       //   await createViaDispatcher(request);
@@ -555,7 +588,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
         </div>
         <div className="flex ml-auto pt-2 sm:flex pt-0">
           <Button
-          className="mr-2"
+            className="mr-2"
             icon={
               premiumContent ? <LockClosedIcon className="w-4 h-4" /> : <LockOpenIcon className="w-4 h-4" />
             }

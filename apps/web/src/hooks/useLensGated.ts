@@ -36,10 +36,14 @@ const useLensGated = () => {
       env: LensEnvironment.Mumbai
     });
 
+    console.log("Created sdk");
+
     await sdk.connect({
       address: currentProfile?.ownedBy,
       env: LensEnvironment.Mumbai
     });
+
+    console.log("Connected to SDK");
 
     const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
       metadata,
@@ -55,7 +59,8 @@ const useLensGated = () => {
   };
 
   return {
-    encryptPostMetadata: encryptPostMetadata
+    encryptPostMetadata: encryptPostMetadata,
+    nftAccessCondition: nftAccessCondition
   }
 };
 export default useLensGated;
