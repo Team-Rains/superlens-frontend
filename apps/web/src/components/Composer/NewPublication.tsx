@@ -1,4 +1,12 @@
 import Attachments from '@components/Shared/Attachments';
+import {
+  ContractType,
+  EncryptedMetadata,
+  LensEnvironment,
+  LensGatedSDK,
+  MetadataV2,
+  NftOwnership
+} from '@lens-protocol/sdk-gated';
 import { AudioPublicationSchema } from '@components/Shared/Audio';
 import withLexicalContext from '@components/Shared/Lexical/withLexicalContext';
 import { Button } from '@components/UI/Button';
@@ -21,6 +29,7 @@ import splitSignature from '@lib/splitSignature';
 import trimify from '@lib/trimify';
 import uploadToArweave from '@lib/uploadToArweave';
 import { LensHubProxy } from 'abis';
+
 import clsx from 'clsx';
 import {
   ALLOWED_AUDIO_TYPES,
@@ -31,7 +40,6 @@ import {
   RELAY_ON,
   SIGN_WALLET
 } from 'data/constants';
-import type { CreatePublicCommentRequest } from 'lens';
 import {
   PublicationMainFocus,
   ReferenceModules,
@@ -53,8 +61,13 @@ import { useTransactionPersistStore } from 'src/store/transaction';
 import { COMMENT, POST } from 'src/tracking';
 import { v4 as uuid } from 'uuid';
 import { useContractWrite, useSignTypedData } from 'wagmi';
+import { CreatePublicPostRequest } from './Post/lensInterfaces';
+import { TypedDataDomain } from '@ethersproject/abstract-signer';
+import omitDeep from 'omit-deep';
 
 import Editor from './Editor';
+import { ethers, providers } from 'ethers';
+import { createNewPost } from './Post/lens';
 
 const Attachment = dynamic(() => import('@components/Composer/Actions/Attachment'), {
   loading: () => <div className="mb-1 w-5 h-5 rounded-lg shimmer" />
@@ -308,8 +321,9 @@ const NewPublication: FC<Props> = ({ publication }) => {
 
     try {
       setIsSubmitting(true);
-
-      if (isAudioPublication) { // checking if the publication is an audio
+      console.log('submitting post');
+      if (isAudioPublication) {
+        // checking if the publication is an audio
         setPublicationContentError('');
         const parsedData = AudioPublicationSchema.safeParse(audioPublication);
         if (!parsedData.success) {
@@ -349,7 +363,7 @@ const NewPublication: FC<Props> = ({ publication }) => {
       }
 
       //coding the metadata
-      const metadata = {
+      const metadata: MetadataV2 = {
         version: '2.0.0',
         metadata_id: uuid(),
         description: trimify(publicationContent),
@@ -360,60 +374,153 @@ const NewPublication: FC<Props> = ({ publication }) => {
         name: isAudioPublication ? audioPublication.title : `Comment by @${currentProfile?.handle}`,
         tags: getTags(publicationContent),
         animation_url: getAnimationUrl(),
-        mainContentFocus: getMainContentFocus(),
+        mainContentFocus: getMainContentFocus()!,
         contentWarning: null,
-        attributes,
+        attributes: [],
         media: attachments,
         locale: getUserLocale(),
-        createdOn: new Date(),
         appId: APP_NAME
-      }
+      };
+
+      console.log('Created metadata');
 
       // coding the post metadata here
       // sending the metadata to Arweave and getting the CID back
-      const id = await uploadToArweave(metadata);
 
-      console.log('This is the metadata id ', id);
+      const uploadMetadataHandler = async (data: EncryptedMetadata): Promise<string> => {
+        const id = await uploadToArweave(metadata);
+        return Promise.resolve(id);
+      };
+
+      const nftAccessCondition: NftOwnership = {
+        contractAddress: '0xedDbE4435B941fE384CB712320ea966D19b9Ae2a',
+        chainID: 80001,
+        contractType: ContractType.Erc721
+      };
+      console.log('four');
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum!);
+      console.log(provider);
+
+      const sdk = await LensGatedSDK.create({
+        provider: provider,
+        signer: provider.getSigner(currentProfile.ownedBy),
+        env: LensEnvironment.Mumbai
+      });
+      console.log('six');
+
+      await sdk.connect({
+        address: currentProfile.ownedBy,
+        env: LensEnvironment.Mumbai
+      });
+      console.log('Seven');
+
+      const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
+        metadata,
+        currentProfile.id,
+        {
+          nft: nftAccessCondition
+        },
+        uploadMetadataHandler
+      );
+
+      console.log('Content uri is', contentURI);
+      console.log(encryptedMetadata);
 
       const request = {
         profileId: currentProfile?.id,
-        contentURI: `https://arweave.net/${id}`,
-        ...(isComment && {
-          publicationId: publication.__typename === 'Mirror' ? publication?.mirrorOf?.id : publication?.id
-        }),
-        collectModule: payload,
-        referenceModule:
-          selectedReferenceModule === ReferenceModules.FollowerOnlyReferenceModule
-            ? { followerOnlyReferenceModule: onlyFollowers ? true : false }
-            : {
-                degreesOfSeparationReferenceModule: {
-                  commentsRestricted: true,
-                  mirrorsRestricted: true,
-                  degreesOfSeparation
-                }
-              }
+        contentURI: `https://arweave.net/${contentURI}`,
+        collectModule: {
+          freeCollectModule: { followerOnly: false }
+        },
+        referenceModule: {
+          followerOnlyReferenceModule: false
+        },
+        gated: {
+          nft: nftAccessCondition,
+          encryptedSymmetricKey: encryptedMetadata?.encryptionParams.providerSpecificParams.encryptionKey,
+        },
       };
 
-      // initialise the gated SDK here
+      // if (currentProfile?.dispatcher?.canUseRelay) {
+      //   await createViaDispatcher(request);
+      // } else {
+      //   if (isComment) {
+      //     await createCommentTypedData({
+      //       variables: {
+      //         options: { overrideSigNonce: userSigNonce },
+      //         request: request as CreatePublicCommentRequest
+      //       }
+      //     });
+      //   } else {
+      //     await createPostTypedData({
+      //       // this function will create post without dispatcher
+      //       variables: { options: { overrideSigNonce: userSigNonce }, request }
+      //     });
+      //   }
+      // }
+      // createPostTypedData({
+      //   // this function will create post without dispatcher
+      //   variables: { options: { overrideSigNonce: userSigNonce }, request }
+      // });
 
-      if (currentProfile?.dispatcher?.canUseRelay) {
-        await createViaDispatcher(request);
-      } else {
-        if (isComment) {
-          await createCommentTypedData({
-            variables: {
-              options: { overrideSigNonce: userSigNonce },
-              request: request as CreatePublicCommentRequest
-            }
-          });
-        } else {
-          await createPostTypedData({
-            // this function will create post without dispatcher
-            variables: { options: { overrideSigNonce: userSigNonce }, request }
-          });
+      // try and post the different way
+      const omit = (object: any, name: string) => {
+        return omitDeep(object, name);
+      };
+
+      const signedTypeData = (
+        domain: TypedDataDomain,
+        types: Record<string, any>,
+        value: Record<string, any>
+      ) => {
+        const signer = provider.getSigner();
+        // remove the __typedname from the signature!
+        return signer._signTypedData(
+          omit(domain, '__typename'),
+          omit(types, '__typename'),
+          omit(value, '__typename')
+        );
+      };
+
+      const signCreatePostTypedData = async (request: CreatePublicPostRequest) => {
+        const result = await createNewPost(request);
+        console.log('create post: createPostTypedData', result);
+
+        const typedData = result.data!.createPostTypedData.typedData;
+        console.log('create post: typedData', typedData);
+
+        const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
+        console.log('create post: signature', signature);
+
+        return { result, signature };
+      };
+
+      const signedResult = await signCreatePostTypedData(request);
+      console.log('create post: signedResult', signedResult);
+
+      const typedData = signedResult.result.data!.createPostTypedData.typedData;
+      console.log('GOt typed data ', typedData);
+
+      const { v, r, s } = splitSignature(signedResult.signature);
+      const signer = provider.getSigner();
+      const lensHub = new ethers.Contract('0x60Ae865ee4C725cd04353b5AAb364553f56ceF82', LensHubProxy, signer);
+      const tx = await lensHub.postWithSig({
+        profileId: typedData.value.profileId,
+        contentURI: typedData.value.contentURI,
+        collectModule: typedData.value.collectModule,
+        collectModuleInitData: typedData.value.collectModuleInitData,
+        referenceModule: typedData.value.referenceModule,
+        referenceModuleInitData: typedData.value.referenceModuleInitData,
+        sig: {
+          v,
+          r,
+          s,
+          deadline: typedData.value.deadline
         }
-      }
-    } catch {
+      });
+    } catch (error) {
+      console.log(error);
     } finally {
       setIsSubmitting(false);
     }

@@ -27,7 +27,9 @@
   },
   "packageManager": "yarn@1.22.19",
   "dependencies": {
+    "@ethersproject/abstract-signer": "^5.7.0",
     "@lens-protocol/sdk-gated": "^1.1.2",
-    "decimal.js": "^10.4.2"
+    "decimal.js": "^10.4.2",
+    "omit-deep": "^0.3.0"
   }
 }
