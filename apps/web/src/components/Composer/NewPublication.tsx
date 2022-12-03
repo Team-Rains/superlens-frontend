@@ -460,66 +460,66 @@ const NewPublication: FC<Props> = ({ publication }) => {
       //     });
       //   }
       // }
-      // createPostTypedData({
-      //   // this function will create post without dispatcher
-      //   variables: { options: { overrideSigNonce: userSigNonce }, request }
-      // });
+      createPostTypedData({
+        // this function will create post without dispatcher
+        variables: { options: { overrideSigNonce: userSigNonce }, request }
+      });
 
       // try and post the different way
-      const omit = (object: any, name: string) => {
-        return omitDeep(object, name);
-      };
+      // const omit = (object: any, name: string) => {
+      //   return omitDeep(object, name);
+      // };
 
-      const signedTypeData = (
-        domain: TypedDataDomain,
-        types: Record<string, any>,
-        value: Record<string, any>
-      ) => {
-        const signer = provider.getSigner();
-        // remove the __typedname from the signature!
-        return signer._signTypedData(
-          omit(domain, '__typename'),
-          omit(types, '__typename'),
-          omit(value, '__typename')
-        );
-      };
+      // const signedTypeData = (
+      //   domain: TypedDataDomain,
+      //   types: Record<string, any>,
+      //   value: Record<string, any>
+      // ) => {
+      //   const signer = provider.getSigner();
+      //   // remove the __typedname from the signature!
+      //   return signer._signTypedData(
+      //     omit(domain, '__typename'),
+      //     omit(types, '__typename'),
+      //     omit(value, '__typename')
+      //   );
+      // };
 
-      const signCreatePostTypedData = async (request: CreatePublicPostRequest) => {
-        const result = await createNewPost(request);
-        console.log('create post: createPostTypedData', result);
+      // const signCreatePostTypedData = async (request: CreatePublicPostRequest) => {
+      //   const result = await createNewPost(request);
+      //   console.log('create post: createPostTypedData', result);
 
-        const typedData = result.data!.createPostTypedData.typedData;
-        console.log('create post: typedData', typedData);
+      //   const typedData = result.data!.createPostTypedData.typedData;
+      //   console.log('create post: typedData', typedData);
 
-        const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
-        console.log('create post: signature', signature);
+      //   const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
+      //   console.log('create post: signature', signature);
 
-        return { result, signature };
-      };
+      //   return { result, signature };
+      // };
 
-      const signedResult = await signCreatePostTypedData(request);
-      console.log('create post: signedResult', signedResult);
+      // const signedResult = await signCreatePostTypedData(request);
+      // console.log('create post: signedResult', signedResult);
 
-      const typedData = signedResult.result.data!.createPostTypedData.typedData;
-      console.log('GOt typed data ', typedData);
+      // const typedData = signedResult.result.data!.createPostTypedData.typedData;
+      // console.log('GOt typed data ', typedData);
 
-      const { v, r, s } = splitSignature(signedResult.signature);
-      const signer = provider.getSigner();
-      const lensHub = new ethers.Contract('0x60Ae865ee4C725cd04353b5AAb364553f56ceF82', LensHubProxy, signer);
-      const tx = await lensHub.postWithSig({
-        profileId: typedData.value.profileId,
-        contentURI: typedData.value.contentURI,
-        collectModule: typedData.value.collectModule,
-        collectModuleInitData: typedData.value.collectModuleInitData,
-        referenceModule: typedData.value.referenceModule,
-        referenceModuleInitData: typedData.value.referenceModuleInitData,
-        sig: {
-          v,
-          r,
-          s,
-          deadline: typedData.value.deadline
-        }
-      });
+      // const { v, r, s } = splitSignature(signedResult.signature);
+      // const signer = provider.getSigner();
+      // const lensHub = new ethers.Contract('0x60Ae865ee4C725cd04353b5AAb364553f56ceF82', LensHubProxy, signer);
+      // const tx = await lensHub.postWithSig({
+      //   profileId: typedData.value.profileId,
+      //   contentURI: typedData.value.contentURI,
+      //   collectModule: typedData.value.collectModule,
+      //   collectModuleInitData: typedData.value.collectModuleInitData,
+      //   referenceModule: typedData.value.referenceModule,
+      //   referenceModuleInitData: typedData.value.referenceModuleInitData,
+      //   sig: {
+      //     v,
+      //     r,
+      //     s,
+      //     deadline: typedData.value.deadline
+      //   }
+      // });
     } catch (error) {
       console.log(error);
     } finally {
