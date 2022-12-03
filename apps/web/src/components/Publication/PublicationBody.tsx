@@ -17,31 +17,6 @@ interface Props {
 const PublicationBody: FC<Props> = ({ publication }) => {
   const { pathname } = useRouter();
   const showMore = publication?.metadata?.content?.length > 450 && pathname !== '/posts/[id]';
-  const hookLensGated = useLensGated();
-
-  let content;
-  // const decryptContent = async () => {
-  //   if (publication?.isGated) {
-  //     hookLensGated.decryptPostMetadata(publication?.metadata).then((result) => {
-  //       const content = result;
-  //       console.log(content);
-  //       return <p>{content}</p>;
-  //     });
-  //   } else {
-  //     const content = publication?.metadata?.content;
-  //     return <p>{content}</p>;
-  //   }
-  // };
-  if (publication?.isGated) {
-    // hookLensGated.decryptPostMetadata(publication?.metadata).then(result => {
-    //   content = result?.content;
-    //   console.log("The resulted content is", content);
-    // });
-    content = hookLensGated.decryptPostMetadata(publication?.metadata);
-    console.log(content);
-  } else {
-    content = publication?.metadata?.content;
-  }
 
   // instead of showing the content right away, just show a bit header or description
   // Then on click show the complete decrypted post.

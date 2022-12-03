@@ -3,7 +3,7 @@ import type { LensterPublication } from '@generated/types';
 import getAppName from '@lib/getAppName';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import useLensGated from 'src/hooks/useLensGated';
 
 import PublicationActions from './Actions';
@@ -38,12 +38,18 @@ const FullPublication: FC<Props> = ({ publication }) => {
     : publication?.stats?.totalAmountOfCollects;
   const showStats = mirrorCount > 0 || reactionCount > 0 || collectCount > 0;
 
-  if (publication?.isGated) {
-    hookLensGated.decryptPostMetadata(publication?.metadata).then(result => {
-      console.log("The decrypted result is ", result);
-      setDecryptedData(result);
-    })
-  }
+  useEffect(() => {
+    if (publication?.isGated) {
+      try {
+        hookLensGated.decryptPostMetadata(publication?.metadata).then((result) => {
+          console.log('The decrypted result is ', result);
+          setDecryptedData(result);
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }, [publication?.metadata?.content]);
 
   return (
     <article className="p-5">
