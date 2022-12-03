@@ -55,119 +55,19 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
   })
   const { data, isLoading, isSuccess, write } = useContractWrite(config)
 
-  /*
-  const userSigNonce = useAppStore((state) => state.userSigNonce);
-  const setUserSigNonce = useAppStore((state) => state.setUserSigNonce);
-  const [allowed, setAllowed] = useState(true);
-  const { address } = useAccount();
-
-  const onCompleted = () => {
-    setFollowing(true);
-    setShowFollowModal(false);
-    toast.success('Followed successfully!');
-    Leafwatch.track(PROFILE.SUPER_FOLLOW);
-  };
-
-  const { data, loading } = useSuperFollowQuery({
-    variables: { request: { profileId: profile?.id } },
-    skip: !profile?.id
-  });
-
-  const followModule: any = data?.profile?.followModule;
-
-  const { data: allowanceData, loading: allowanceLoading } = useApprovedModuleAllowanceAmountQuery({
-    variables: {
-      request: {
-        currencies: followModule?.amount?.asset?.address,
-        followModules: [FollowModules.FeeFollowModule],
-        collectModules: [],
-        referenceModules: []
-      }
-    },
-    skip: !followModule?.amount?.asset?.address || !currentProfile,
-    onCompleted: (data) => {
-      setAllowed(data?.approvedModuleAllowanceAmount[0]?.allowance !== '0x00');
-    }
-  });
-
   const { data: balanceData } = useBalance({
     address: currentProfile?.ownedBy,
-    token: followModule?.amount?.asset?.address,
-    formatUnits: followModule?.amount?.asset?.decimals,
+    token: USDCX,
+    formatUnits: 18,
     watch: true
   });
   let hasAmount = false;
 
-  if (balanceData && parseFloat(balanceData?.formatted) < parseFloat(followModule?.amount?.value)) {
+  if (balanceData && parseFloat(balanceData?.formatted) < parseFloat("10000000000000000")) {
     hasAmount = false;
   } else {
     hasAmount = true;
   }
-
-  const { broadcast, loading: broadcastLoading } = useBroadcast({ onCompleted });
-  const [createFollowTypedData, { loading: typedDataLoading }] = useCreateFollowTypedDataMutation({
-    onCompleted: async ({ createFollowTypedData }) => {
-      try {
-        const { id, typedData } = createFollowTypedData;
-        const { profileIds, datas: followData, deadline } = typedData.value;
-        const signature = await signTypedDataAsync(getSignature(typedData));
-        const { v, r, s } = splitSignature(signature);
-        const sig = { v, r, s, deadline };
-        const inputStruct = {
-          follower: address,
-          profileIds,
-          datas: followData,
-          sig
-        };
-
-        setUserSigNonce(userSigNonce + 1);
-        if (!RELAY_ON) {
-          return write?.({ recklesslySetUnpreparedArgs: [inputStruct] });
-        }
-
-        const {
-          data: { broadcast: result }
-        } = await broadcast({ request: { id, signature } });
-
-        if ('reason' in result) {
-          write?.({ recklesslySetUnpreparedArgs: [inputStruct] });
-        }
-      } catch {}
-    },
-    onError
-  });
-
-  const createFollow = () => {
-    if (!currentProfile) {
-      return toast.error(SIGN_WALLET);
-    }
-
-    createFollowTypedData({
-      variables: {
-        options: { overrideSigNonce: userSigNonce },
-        request: {
-          follow: [
-            {
-              profile: profile?.id,
-              followModule: {
-                feeFollowModule: {
-                  amount: {
-                    currency: followModule?.amount?.asset?.address,
-                    value: followModule?.amount?.value
-                  }
-                }
-              }
-            }
-          ]
-        }
-      }
-    });
-  };
-  if (loading) {
-    return <Loader message="Loading super follow" />;
-  }
-  */
-
 
   const createFollow = () => {
     if (1==1) {
@@ -238,7 +138,9 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
           </li>
         </ul>
       
-        <Button
+        {
+          hasAmount ? (
+              <Button
                 className="text-sm !px-3 !py-1.5 mt-5"
                 variant="super"
                 outline
@@ -247,6 +149,17 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
               >
                 Super follow {again ? 'again' : 'now'}
               </Button>
+          ) : (
+            <div className="mt-5 text-center font-bold">
+              <a 
+                href="http://app.superfluid.finance" 
+              >
+                Get Super USDC to subscribe
+              </a>
+            </div>
+          )
+        }
+        
       </div>
       {/*
         {currentProfile ? (

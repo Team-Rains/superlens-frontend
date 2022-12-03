@@ -7,7 +7,10 @@ const ANIMATION_MINIMUM_STEP_TIME = 80;
 const EtherFormatted: FC<{ wei: BigNumberish }> = ({ wei }) => {
   const etherDecimalPlaces = 6
 
-  console.log("wei value that is failing", wei);
+  if (wei == undefined) {
+    return "0"; // No need to show animation when flow rate is zero.
+  }
+
   const ether = ethers.utils.formatEther(wei);
   const isRounded = ether.split(".")[1].length > etherDecimalPlaces;
 
