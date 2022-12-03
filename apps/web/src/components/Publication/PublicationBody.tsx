@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { FC } from 'react';
+import useLensGated from 'src/hooks/useLensGated';
 
 interface Props {
   publication: LensterPublication;
@@ -16,6 +17,18 @@ interface Props {
 const PublicationBody: FC<Props> = ({ publication }) => {
   const { pathname } = useRouter();
   const showMore = publication?.metadata?.content?.length > 450 && pathname !== '/posts/[id]';
+  const hookLensGated = useLensGated();
+
+  let content;
+  if (publication?.metadata?.encryptionParams) {
+    console.log("This is the encrypted data", publication?.metadata)
+    content = hookLensGated.decryptPostMetadata(publication?.metadata);
+    console.log(content);
+  } else {
+    console.log("Got into else");
+    console.log(publication)
+    content = publication?.metadata?.content;
+  }
 
   return (
     <div className="break-words">
@@ -25,7 +38,8 @@ const PublicationBody: FC<Props> = ({ publication }) => {
           'whitespace-pre-wrap break-words leading-md linkify text-md'
         )}
       >
-        {publication?.metadata?.content}
+        {/* {publication?.metadata?.encryptionParams ? () : ()} */}
+        {content}
       </Markup>
       {showMore && (
         <div className="mt-4 text-sm text-gray-500 font-bold flex items-center space-x-1">

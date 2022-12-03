@@ -58,6 +58,7 @@ const useLensGated = () => {
 
   const decryptPostMetadata = async (metadata: any) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum!);
+    console.log("Called this function")
 
     const sdk = await LensGatedSDK.create({
       provider: provider,

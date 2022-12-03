@@ -58,8 +58,13 @@ const Feed: FC<Props> = ({ profile, type }) => {
     variables: { request, reactionRequest, profileId },
     skip: !profile?.id
   });
+  if (error) {
+    console.log(error);
+  }
 
   const publications = data?.publications?.items;
+  
+  console.log("Here are the publications", data);
   const pageInfo = data?.publications?.pageInfo;
   const hasMore = pageInfo?.next && publications?.length !== pageInfo.totalCount;
 
