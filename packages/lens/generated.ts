@@ -19935,7 +19935,37 @@ export const MetadataFieldsFragmentDoc = gql`
         mimeType
       }
     }
-    encryptionParams
+    encryptionParams{
+      accessCondition {
+        or{
+          criteria {
+            nft {
+              contractType
+              contractAddress
+              chainID
+            }
+            profile {
+              profileId
+            }
+          }
+        }
+      }
+      encryptedFields {
+        animation_url
+        content
+        image
+        media {
+          original {
+            url
+            mimeType
+          }
+        }
+      }
+      encryptionProvider
+      providerSpecificParams {
+        encryptionKey
+      }
+    }
   }
 `;
 export const PostFieldsFragmentDoc = gql`

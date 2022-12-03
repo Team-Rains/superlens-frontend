@@ -20,27 +20,43 @@ const PublicationBody: FC<Props> = ({ publication }) => {
   const hookLensGated = useLensGated();
 
   let content;
-  if (publication?.metadata?.encryptionParams) {
-    console.log("This is the encrypted data", publication?.metadata)
+  // const decryptContent = async () => {
+  //   if (publication?.isGated) {
+  //     hookLensGated.decryptPostMetadata(publication?.metadata).then((result) => {
+  //       const content = result;
+  //       console.log(content);
+  //       return <p>{content}</p>;
+  //     });
+  //   } else {
+  //     const content = publication?.metadata?.content;
+  //     return <p>{content}</p>;
+  //   }
+  // };
+  if (publication?.isGated) {
+    // hookLensGated.decryptPostMetadata(publication?.metadata).then(result => {
+    //   content = result?.content;
+    //   console.log("The resulted content is", content);
+    // });
     content = hookLensGated.decryptPostMetadata(publication?.metadata);
     console.log(content);
   } else {
-    console.log("Got into else");
-    console.log(publication)
     content = publication?.metadata?.content;
   }
 
+  // instead of showing the content right away, just show a bit header or description
+  // Then on click show the complete decrypted post.
+
   return (
     <div className="break-words">
-      <Markup
-        className={clsx(
-          { 'line-clamp-5': showMore },
-          'whitespace-pre-wrap break-words leading-md linkify text-md'
-        )}
-      >
-        {/* {publication?.metadata?.encryptionParams ? () : ()} */}
-        {content}
-      </Markup>
+      {
+        publication?.isGated ? (
+          <>
+            <p>Click to View Premium Content</p>
+          </>
+        ) : (
+          <p>{publication?.metadata?.content}</p>
+        )
+      }
       {showMore && (
         <div className="mt-4 text-sm text-gray-500 font-bold flex items-center space-x-1">
           <EyeIcon className="h-4 w-4" />

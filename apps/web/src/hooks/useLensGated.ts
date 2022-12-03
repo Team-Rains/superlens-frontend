@@ -56,9 +56,8 @@ const useLensGated = () => {
     return { contentURI, encryptedMetadata };
   };
 
-  const decryptPostMetadata = async (metadata: any) => {
+  const decryptPostMetadata = async (metadata: any) : Promise<any> => {
     const provider = new ethers.providers.Web3Provider(window.ethereum!);
-    console.log("Called this function")
 
     const sdk = await LensGatedSDK.create({
       provider: provider,
@@ -76,7 +75,7 @@ const useLensGated = () => {
     const { error, decrypted } = await sdk.gated.decryptMetadata(metadata);
     console.log("An error occured ", error);
     console.log("Decrypted metadata ", decrypted);
-    return decrypted;
+    return Promise.resolve(decrypted);
   };
 
   return {
