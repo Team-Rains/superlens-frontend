@@ -7,6 +7,7 @@ const ANIMATION_MINIMUM_STEP_TIME = 80;
 const EtherFormatted: FC<{ wei: BigNumberish }> = ({ wei }) => {
   const etherDecimalPlaces = 6
 
+  console.log("wei value that is failing", wei);
   const ether = ethers.utils.formatEther(wei);
   const isRounded = ether.split(".")[1].length > etherDecimalPlaces;
 
@@ -36,6 +37,7 @@ const FlowingBalance: FC<FlowingBalanceProps> = ({
   );
 
   useEffect(() => {
+    if(flowRate == undefined) return;
     const flowRateBigNumber = ethers.BigNumber.from(flowRate);
     if (flowRateBigNumber.isZero()) {
       return; // No need to show animation when flow rate is zero.
@@ -82,15 +84,17 @@ const FlowingBalance: FC<FlowingBalanceProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [balance, balanceTimestamp, flowRate]);
 
-  return (
-    <span
-      style={{
-        textOverflow: "ellipsis",
-      }}
-    >
-      <EtherFormatted wei={weiValue} />
-    </span>
-  );
+  if(weiValue !== undefined) {
+    return (
+      (<span
+        style={{
+          textOverflow: "ellipsis",
+        }}
+      >
+        <EtherFormatted wei={weiValue} />
+      </span>)
+    );
+  }
 };
 
 export default FlowingBalance;
