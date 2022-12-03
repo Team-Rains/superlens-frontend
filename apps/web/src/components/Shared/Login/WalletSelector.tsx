@@ -94,6 +94,9 @@ const WalletSelector: FC<Props> = ({ setHasConnected, setHasProfile }) => {
         setCurrentProfile(currentProfile);
         setProfileId(currentProfile.id);
       }
+
+      // initialise the lens Gated SDK
+      
       Leafwatch.track(USER.SIWL);
     } catch (error) {
       console.error(error);

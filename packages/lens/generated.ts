@@ -11834,6 +11834,8 @@ export type ProfileFeedQuery = {
               traitType?: string | null;
               value?: string | null;
             }>;
+            encryptionParams?: any;
+            isGated?: any;
             cover?: { __typename?: 'MediaSet'; original: { __typename?: 'Media'; url: any } } | null;
             media: Array<{
               __typename?: 'MediaSet';
@@ -13232,6 +13234,7 @@ export type ProfileFeedQuery = {
           hidden: boolean;
           createdAt: any;
           appId?: any | null;
+          isGated: boolean;
           profile: {
             __typename?: 'Profile';
             id: any;
@@ -13352,7 +13355,6 @@ export type ProfileFeedQuery = {
             __typename?: 'MetadataOutput';
             name?: string | null;
             description?: any | null;
-            content?: any | null;
             image?: any | null;
             attributes: Array<{
               __typename?: 'MetadataAttributeOutput';
@@ -15096,12 +15098,14 @@ export type PublicationQuery = {
           totalAmountOfCollects: number;
           totalAmountOfComments: number;
         };
+        isGated: boolean;
         metadata: {
           __typename?: 'MetadataOutput';
           name?: string | null;
           description?: any | null;
           content?: any | null;
           image?: any | null;
+          encryptionParams: EncryptedFieldsOutput;
           attributes: Array<{
             __typename?: 'MetadataAttributeOutput';
             traitType?: string | null;
@@ -19931,6 +19935,37 @@ export const MetadataFieldsFragmentDoc = gql`
         mimeType
       }
     }
+    encryptionParams{
+      accessCondition {
+        or{
+          criteria {
+            nft {
+              contractType
+              contractAddress
+              chainID
+            }
+            profile {
+              profileId
+            }
+          }
+        }
+      }
+      encryptedFields {
+        animation_url
+        content
+        image
+        media {
+          original {
+            url
+            mimeType
+          }
+        }
+      }
+      encryptionProvider
+      providerSpecificParams {
+        encryptionKey
+      }
+    }
   }
 `;
 export const PostFieldsFragmentDoc = gql`
@@ -19966,6 +20001,7 @@ export const PostFieldsFragmentDoc = gql`
     hidden
     createdAt
     appId
+    isGated
   }
   ${ProfileFieldsFragmentDoc}
   ${CollectModuleFieldsFragmentDoc}

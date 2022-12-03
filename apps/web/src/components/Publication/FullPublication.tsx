@@ -3,7 +3,8 @@ import type { LensterPublication } from '@generated/types';
 import getAppName from '@lib/getAppName';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import type { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
+import useLensGated from 'src/hooks/useLensGated';
 
 import PublicationActions from './Actions';
 import HiddenPublication from './HiddenPublication';
@@ -22,6 +23,9 @@ const FullPublication: FC<Props> = ({ publication }) => {
   const profile = isMirror ? publication?.mirrorOf?.profile : publication?.profile;
   const timestamp = isMirror ? publication?.mirrorOf?.createdAt : publication?.createdAt;
 
+  const [decryptedData, setDecryptedData] = useState<any>();
+  const hookLensGated = useLensGated();
+
   // Count check to show the publication stats only if the publication has a comment, like or collect
   const mirrorCount = isMirror
     ? publication?.mirrorOf?.stats?.totalAmountOfMirrors
@@ -33,6 +37,19 @@ const FullPublication: FC<Props> = ({ publication }) => {
     ? publication?.mirrorOf?.stats?.totalAmountOfCollects
     : publication?.stats?.totalAmountOfCollects;
   const showStats = mirrorCount > 0 || reactionCount > 0 || collectCount > 0;
+
+  useEffect(() => {
+    if (publication?.isGated) {
+      try {
+        hookLensGated.decryptPostMetadata(publication?.metadata).then((result) => {
+          console.log('The decrypted result is ', result);
+          setDecryptedData(result);
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }, [publication?.metadata?.content]);
 
   return (
     <article className="p-5">
@@ -46,7 +63,8 @@ const FullPublication: FC<Props> = ({ publication }) => {
             <HiddenPublication type={publication.__typename} />
           ) : (
             <>
-              <PublicationBody publication={publication} />
+              {/* <PublicationBody publication={publication} /> */}
+              <p>{decryptedData?.content}</p>
               <div className="text-sm text-gray-500 my-3">
                 <span>{dayjs(new Date(timestamp)).format('hh:mm A · MMM D, YYYY')}</span>
                 {publication?.appId ? <span> · Posted via {getAppName(publication?.appId)}</span> : null}
