@@ -59,14 +59,14 @@ const FlowingBalance: FC<FlowingBalanceProps> = ({
           new Date().valueOf() // Milliseconds elapsed since UTC epoch, disregards timezone.
         );
 
-        setWeiValue(
-          balanceBigNumber.add(
+        const nextStep = 
             currentTimestampBigNumber
               .sub(balanceTimestampMs)
               .mul(flowRateBigNumber)
-              .div(1000)
-          )
-        );
+              .div(1000);
+        
+        setWeiValue(
+          balanceBigNumber.add(nextStep));
 
         lastAnimationTimestamp = currentAnimationTimestamp;
       }

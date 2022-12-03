@@ -19,7 +19,7 @@ import getAttribute from '@lib/getAttribute';
 import getAvatar from '@lib/getAvatar';
 import isStaff from '@lib/isStaff';
 import isVerified from '@lib/isVerified';
-import { STATIC_IMAGES_URL } from 'data/constants';
+import { STATIC_IMAGES_URL, USDCX } from 'data/constants';
 import type { Profile } from 'lens';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -33,7 +33,7 @@ import Badges from './Badges';
 import Followerings from './Followerings';
 import MutualFollowers from './MutualFollowers';
 import MutualFollowersList from './MutualFollowers/List';
-import FlowingBalance from './../Shared/FlowingBalance';
+import UserBalance from './../Shared/UserBalance';
 
 interface Props {
   profile: Profile;
@@ -135,11 +135,8 @@ const Details: FC<Props> = ({ profile }) => {
                 <div className="flex space-x-2 mt-2">
                   <StreamFollow profile={profile} setFollowing={setFollowing} showText />
                 </div>
-                <div className="flex space-x-2 mt-2">
-                  <span className="font-bold">USDCx: </span><FlowingBalance balance="100000" balanceTimestamp={11111111} flowRate="-100000000000000" />
-                </div>
                 <div className="flex space-x-2 mt-1">
-                  <span className="font-bold">${(profile?.handle).toUpperCase()}x: </span><FlowingBalance balance="100000" balanceTimestamp={11111111} flowRate={"100000000000000"} />
+                  <span className="font-bold">${(profile?.handle).toUpperCase()}x: </span><UserBalance account={currentProfile?.ownedBy} token={USDCX} />
                 </div>
               </>
             )

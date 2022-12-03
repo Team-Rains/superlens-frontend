@@ -53,6 +53,7 @@ export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 // Superfluid stuff
 export const SUPERFLUID_FORWARDER = '0xcfA132E353cB4E398080B9700609bb008eceB125';
 export const USDCX = '0x42bb40bf79730451b11f6de1cba222f17b87afd7'; // fUSDCx on Mumbai
+export const CFA = '0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873'; //CFA on Mumbai
 
 // Messages
 export const ERROR_MESSAGE = 'Something went wrong!';
