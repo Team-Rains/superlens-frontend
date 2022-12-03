@@ -74,7 +74,12 @@ const Details: FC<Props> = ({ profile }) => {
       },
     ],
   });
-  const [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+  console.log("user contracts before:");
+  console.log(userContracts);
+  let streamManager, socialToken, stakingContractAddress, other;
+  if(userContracts != undefined) {
+    [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+  }
   console.log("user contracts:");
   console.log(streamManager);
   console.log(socialToken);
