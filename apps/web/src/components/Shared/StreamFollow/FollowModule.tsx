@@ -25,7 +25,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAppStore } from 'src/store/app';
 import { PROFILE } from 'src/tracking';
-import { useAccount, useBalance, useContractWrite, useSignTypedData, usePrepareContractWrite } from 'wagmi';
+import { useAccount, useBalance, useContractWrite, useContractReads, useSignTypedData, usePrepareContractWrite } from 'wagmi';
 
 import Loader from '../Loader';
 import Slug from '../Slug';
@@ -39,7 +39,12 @@ interface Props {
 
 const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, again }) => {
   const currentProfile = useAppStore((state) => state.currentProfile);
-  console.log(currentProfile);
+
+  // hardcoded stuff
+  const subscriptionAmount = (10*1e18/3600/24/30).toFixed(0);
+
+
+
 
   const { config } = usePrepareContractWrite({
     address: SUPERFLUID_FORWARDER,
@@ -49,7 +54,7 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
       USDCX,
       currentProfile?.ownedBy,
       profile.ownedBy, // sending funds straight to user for now
-      (10*1e18/3600/24/30).toFixed(0).toString(), //hardcoding 10$/month
+      subscriptionAmount.toString(), //hardcoding 10$/month
       "0x"
     ]
   })
@@ -69,11 +74,26 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
     hasAmount = true;
   }
 
-  const createFollow = () => {
-    if (1==1) {
-      console.log("button clicked!")
-    }
+
+  const forwarderContract = {
+    address: SUPERFLUID_FORWARDER,
+    abi: SuperfluidForwarder,
   }
+
+  const { data: isStreamingFlowrate, isError } = useContractReads({
+    contracts: [
+      {
+        ...forwarderContract,
+        functionName: 'getFlowrate',
+        args: [USDCX, currentProfile?.ownedBy, profile?.ownedBy] //here should be using the stream manager address instead
+      },
+    ],
+  });
+
+  console.log("isStreamingFlowrate: ", isStreamingFlowrate?.toString());
+  console.log("subscriptionAmount: ", subscriptionAmount);
+  const isSubscribed = Number(isStreamingFlowrate?.toString()).toString() >= subscriptionAmount;
+  console.log("is subscribed: " , isSubscribed);
 
   return (
     <div className="p-5">
@@ -154,53 +174,13 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
               <a 
                 href="http://app.superfluid.finance" 
               >
-                Get Super USDC to subscribe
+                Get some Super USDC to subscribe
               </a>
             </div>
           )
         }
         
-      </div>
-      {/*
-        {currentProfile ? (
-          allowanceLoading ? (
-            <div className="mt-5 w-28 rounded-lg h-[34px] shimmer" />
-          ) : allowed ? (
-            hasAmount ? (
-              <Button
-                className="text-sm !px-3 !py-1.5 mt-5"
-                variant="super"
-                outline
-                onClick={createFollow}
-                disabled={typedDataLoading || signLoading || writeLoading || broadcastLoading}
-                icon={
-                  typedDataLoading || signLoading || writeLoading || broadcastLoading ? (
-                    <Spinner variant="super" size="xs" />
-                  ) : (
-                    <StarIcon className="w-4 h-4" />
-                  )
-                }
-              >
-                Super follow {again ? 'again' : 'now'}
-              </Button>
-            ) : (
-              <WarningMessage
-                className="mt-5"
-                message={<Uniswap module={followModule as LensterFollowModule} />}
-              />
-            )
-          ) : (
-            <div className="mt-5">
-              <AllowanceButton
-                title="Allow follow module"
-                module={allowanceData?.approvedModuleAllowanceAmount[0]}
-                allowed={allowed}
-                setAllowed={setAllowed}
-              />
-            </div>
-          )
-        ) : null}
-       */}
+      </div>    
     </div>
   );
 };

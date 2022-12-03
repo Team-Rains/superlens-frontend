@@ -40,10 +40,6 @@ const UserBalance: FC<UserBalanceProps> = ({
       },
     ],
   });
-  console.log("logging the data from wagmi:");
-  console.log(data);
-  console.log(Number(data?.[0]))
-  console.log(Number(data?.[1]))
   
   const currentTimestamp = Number(((new Date().valueOf())/1000).toFixed(0));
   
