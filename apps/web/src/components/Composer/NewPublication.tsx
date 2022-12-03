@@ -388,7 +388,8 @@ const NewPublication: FC<Props> = ({ publication }) => {
       // sending the metadata to Arweave and getting the CID back
 
       const uploadMetadataHandler = async (data: EncryptedMetadata): Promise<string> => {
-        const id = await uploadToArweave(metadata);
+        console.log("Uploading this data to Arweave ", data);
+        const id = await uploadToArweave(data);
         return Promise.resolve(id);
       };
 
