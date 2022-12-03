@@ -13,8 +13,8 @@ const EtherFormatted: FC<{ wei: BigNumberish }> = ({ wei }) => {
 
   const ether = ethers.utils.formatEther(wei);
   const isRounded = ether.split(".")[1].length > etherDecimalPlaces;
-
-  return <>{isRounded && "~"}{new Decimal(ether).toDP(etherDecimalPlaces).toFixed()}</>;
+  const finalValue = new Decimal(ether).toDP(etherDecimalPlaces).toFixed();
+  return <>{isRounded && "~"}{finalValue}{(finalValue*100000%1==0) && "0"}</>;
 };
 
 export interface FlowingBalanceProps {
@@ -24,12 +24,14 @@ export interface FlowingBalanceProps {
    */
   balanceTimestamp: number;
   flowRate: string;
+  className?: string;
 }
 
 const FlowingBalance: FC<FlowingBalanceProps> = ({
   balance,
   balanceTimestamp,
   flowRate,
+  className = ""
 }): ReactElement => {
   const [weiValue, setWeiValue] = useState<BigNumberish>(balance);
   useEffect(() => setWeiValue(balance), [balance]);
@@ -92,7 +94,9 @@ const FlowingBalance: FC<FlowingBalanceProps> = ({
       (<span
         style={{
           textOverflow: "ellipsis",
+          fontVariantNumeric: "tabular-nums"
         }}
+        className={className}
       >
         <EtherFormatted wei={weiValue} />
       </span>)

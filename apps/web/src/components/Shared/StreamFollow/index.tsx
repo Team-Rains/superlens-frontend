@@ -18,7 +18,7 @@ const FollowModule = dynamic(() => import('./FollowModule'), {
 interface Props {
   profile: Profile;
   setFollowing: Dispatch<boolean>;
-  showText?: boolean;
+  showText?: string;
   again?: boolean;
 }
 
@@ -38,7 +38,7 @@ const StreamFollow: FC<Props> = ({ profile, setFollowing, showText = false, agai
         aria-label="Stream Follow"
         icon={<StarIcon className="w-4 h-4" />}
       >
-        {showText && `Stream Follow`}
+        {showText}
       </Button>
       <Modal
         title={

@@ -5,3 +5,5 @@ export * from './SuperToken';
 export * from './ConstantFlowAgreement';
 export * from './LensPeriphery';
 export * from './UpdateOwnableFeeCollectModule';
+export * from './Factory';
+export * from './Staking';

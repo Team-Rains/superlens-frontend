@@ -10,10 +10,11 @@ export interface UserBalanceProps {
    * Timestamp in Subgraph's UTC.
    */
   token: string;
+  className?: string;
 }
 
 const UserBalance: FC<UserBalanceProps> = ({
-  account, token
+  account, token, className = ""
 }): ReactElement => {
   
    
@@ -53,6 +54,7 @@ const UserBalance: FC<UserBalanceProps> = ({
       balance={data?.[0]}
       balanceTimestamp={currentTimestamp}
       flowRate={data?.[1]}
+      className={className}
     />
   );
 };

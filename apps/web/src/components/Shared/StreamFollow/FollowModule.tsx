@@ -11,8 +11,8 @@ import getTokenImage from '@lib/getTokenImage';
 import { Leafwatch } from '@lib/leafwatch';
 import onError from '@lib/onError';
 import splitSignature from '@lib/splitSignature';
-import { LensHubProxy, SuperfluidForwarder } from 'abis';
-import { LENSHUB_PROXY, POLYGONSCAN_URL, RELAY_ON, SIGN_WALLET, SUPERFLUID_FORWARDER, USDCX} from 'data/constants';
+import { LensHubProxy, SuperfluidForwarder, Factory, Staking } from 'abis';
+import { LENSHUB_PROXY, POLYGONSCAN_URL, RELAY_ON, SIGN_WALLET, SUPERFLUID_FORWARDER, USDCX, FACTORY} from 'data/constants';
 import type { Profile } from 'lens';
 import {
   FollowModules,
@@ -26,9 +26,12 @@ import toast from 'react-hot-toast';
 import { useAppStore } from 'src/store/app';
 import { PROFILE } from 'src/tracking';
 import { useAccount, useBalance, useContractWrite, useContractReads, useSignTypedData, usePrepareContractWrite } from 'wagmi';
-
 import Loader from '../Loader';
 import Slug from '../Slug';
+import StreamPiece from "../StreamPiece";
+import BalancePiece from "../BalancePiece";
+import UserBalance from '../UserBalance';
+import conversationMatchesProfile from '@lib/conversationMatchesProfile';
 
 interface Props {
   profile: Profile;
@@ -43,23 +46,6 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
   // hardcoded stuff
   const subscriptionAmount = (10*1e18/3600/24/30).toFixed(0);
 
-
-
-
-  const { config } = usePrepareContractWrite({
-    address: SUPERFLUID_FORWARDER,
-    abi: SuperfluidForwarder,
-    functionName: 'createFlow',
-    args: [
-      USDCX,
-      currentProfile?.ownedBy,
-      profile.ownedBy, // sending funds straight to user for now
-      subscriptionAmount.toString(), //hardcoding 10$/month
-      "0x"
-    ]
-  })
-  const { data, isLoading, isSuccess, write } = useContractWrite(config)
-
   const { data: balanceData } = useBalance({
     address: currentProfile?.ownedBy,
     token: USDCX,
@@ -68,74 +54,90 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
   });
   let hasAmount = false;
 
-  if (balanceData && parseFloat(balanceData?.formatted) < parseFloat("10000000000000000")) {
+  if (balanceData && parseFloat(balanceData?.formatted) < parseFloat("1")) {
     hasAmount = false;
   } else {
     hasAmount = true;
   }
-
 
   const forwarderContract = {
     address: SUPERFLUID_FORWARDER,
     abi: SuperfluidForwarder,
   }
 
-  const { data: isStreamingFlowrate, isError } = useContractReads({
+  const factoryContract = {
+    address: FACTORY,
+    abi: Factory,
+  }
+
+  const { data: userContracts } = useContractReads({
+    contracts: [
+      {
+        ...factoryContract,
+        functionName: 'creatorSet',
+        args: [profile?.ownedBy] //here should be using the stream manager address instead
+      },
+    ],
+  });
+  const [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+
+  const stakingContract = {
+    address: stakingContractAddress,
+    abi: Staking,
+  }
+  
+  const { data: socialTokenBalance } = useBalance({
+    address: currentProfile?.ownedBy,
+    token: socialToken,
+    formatUnits: 18,
+    watch: true
+  });
+  const { data: streamingFlowrate, isError } = useContractReads({
     contracts: [
       {
         ...forwarderContract,
         functionName: 'getFlowrate',
-        args: [USDCX, currentProfile?.ownedBy, profile?.ownedBy] //here should be using the stream manager address instead
+        args: [USDCX, currentProfile?.ownedBy, streamManager] //here should be using the stream manager address instead
       },
     ],
   });
-
-  console.log("isStreamingFlowrate: ", isStreamingFlowrate?.toString());
-  console.log("subscriptionAmount: ", subscriptionAmount);
-  const isSubscribed = Number(isStreamingFlowrate?.toString()).toString() >= subscriptionAmount;
-  console.log("is subscribed: " , isSubscribed);
+  const cleanFlowrate = Number(streamingFlowrate?.toString()).toString();
+  const isSubscribed = cleanFlowrate >= subscriptionAmount;
+  const { config } = usePrepareContractWrite({
+    address: SUPERFLUID_FORWARDER,
+    abi: SuperfluidForwarder,
+    functionName: 'createFlow',
+    args: [
+      USDCX,
+      currentProfile?.ownedBy,
+      streamManager,
+      subscriptionAmount.toString(), //hardcoding 10$/month
+      "0x"
+    ]
+  })
+  const { data, isLoading, isSuccess, write } = useContractWrite(config)
 
   return (
     <div className="p-5">
-      <div className="pb-2 space-y-1.5">
-        <div className="text-lg font-bold">
-          <span>Stream follow </span>
-        <img
-          className="w-7 h-7 mx-2 inline"
-          height={28}
-          width={28}
-          src="https://app.superfluid.finance/gifs/stream-loop.gif"
-          alt="stream"
-          title="Streamin Friggin Mone"
+      <div className="text-center py-2 space-x-1.5">
+        <StreamPiece sender={currentProfile?.handle} receiver={profile?.handle} />
+        <BalancePiece 
+          account={currentProfile?.ownedBy}
+          tokenAddress={USDCX}
+          tokenName="USDCx"
+          flowRate="10"
+          isSubscribed={isSubscribed}
         />
-        <Slug slug={profile?.handle} prefix="@" /> {again ? 'again' : ''}
-        </div>
       </div>
-      <div className="flex items-center py-2 space-x-1.5">
-        {/*<img
-          className="w-7 h-7"
-          height={28}
-          width={28}
-          src="https://raw.githubusercontent.com/superfluid-finance/assets/master/public/tokens/usdc/icon.svg" // throw in USDCx logo
-          alt="USDCx"
-          title="Super USD Coin"
-        />*/}
-        <span className="font-boldest">Stream: </span>
-        <span className="space-x-1">
-          <span className="text-2xl font-bold">10</span>
-          <span className="text-xs"> USDCx / month</span>
-        </span>
-        <span> to </span>
-        <Slug slug={profile?.handle}/> 
-      </div>
-      <div className="flex items-center py-2 space-x-1.5">
-        <span className="font-boldest">Receive: </span>
-        <span className="space-x-1">
-          <span className="text-2xl font-bold">10</span>
-          <span className="text-xs"> ${(profile?.handle).toUpperCase()}x / month</span>
-        </span>
-        <span> to </span>
-        <Slug slug={currentProfile?.handle}/> 
+      <div className="text-center py-2 space-x-1.5">
+        <StreamPiece receiver={currentProfile?.handle} sender={profile?.handle} />
+        <BalancePiece 
+          account={currentProfile?.ownedBy}
+          tokenAddress={socialToken}
+          tokenName={`${((profile?.handle).toUpperCase()).split('.')[0]}`}
+          flowRate="10"
+          isSubscribed={isSubscribed}
+        />
       </div>
       <div className="pt-5 space-y-2">
         <div className="text-lg font-bold">Perks you get</div>
@@ -146,7 +148,7 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
           </li>
           <li className="flex space-x-2 tracking-normal leading-6">
             <div>•</div>
-            <div>Receive a stream of ${(profile?.handle).toUpperCase()}x tokens</div>
+            <div>Receive a stream of ${((profile?.handle).toUpperCase()).split('.')[0]} tokens</div>
           </li>
           <li className="flex space-x-2 tracking-normal leading-6">
             <div>•</div>
@@ -154,29 +156,32 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
           </li>
           <li className="flex space-x-2 tracking-normal leading-6">
             <div>•</div>
-            <div>Stake ${(profile?.handle).toUpperCase()}x to <span className="font-bold">receive USDCx rewards</span></div>
+            <div>Stake ${((profile?.handle).toUpperCase()).split('.')[0]} to <span className="font-bold">receive USDCx rewards</span></div>
           </li>
         </ul>
       
         {
-          hasAmount ? (
-              <Button
-                className="text-sm !px-3 !py-1.5 mt-5"
-                variant="super"
-                outline
-                onClick={() => write?.() }
-                icon={(<StarIcon className="w-4 h-4" />)}
-              >
-                Super follow {again ? 'again' : 'now'}
-              </Button>
-          ) : (
-            <div className="mt-5 text-center font-bold">
-              <a 
-                href="http://app.superfluid.finance" 
-              >
-                Get some Super USDC to subscribe
-              </a>
-            </div>
+          !isSubscribed && (
+            hasAmount 
+            ? (
+                <Button
+                  className="text-sm !px-3 !py-1.5 mt-5"
+                  variant="super"
+                  outline
+                  onClick={() => write?.() }
+                  icon={(<StarIcon className="w-4 h-4" />)}
+                >
+                  Super follow {again ? 'again' : 'now'}
+                </Button>
+            ) : (
+              <div className="mt-5 text-center font-bold">
+                <a 
+                  href="http://app.superfluid.finance" 
+                >
+                  Get some Super USDC to subscribe
+                </a>
+              </div>
+            )
           )
         }
         

@@ -19,7 +19,7 @@ import getAttribute from '@lib/getAttribute';
 import getAvatar from '@lib/getAvatar';
 import isStaff from '@lib/isStaff';
 import isVerified from '@lib/isVerified';
-import { STATIC_IMAGES_URL, USDCX } from 'data/constants';
+import { STATIC_IMAGES_URL } from 'data/constants';
 import type { Profile } from 'lens';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -34,6 +34,9 @@ import Followerings from './Followerings';
 import MutualFollowers from './MutualFollowers';
 import MutualFollowersList from './MutualFollowers/List';
 import UserBalance from './../Shared/UserBalance';
+import { SuperfluidForwarder, Factory, Staking } from 'abis';
+import { SUPERFLUID_FORWARDER, USDCX, FACTORY} from 'data/constants';
+import { useContractReads, usePrepareContractWrite, useContractWrite, useBalance } from 'wagmi';
 
 interface Props {
   profile: Profile;
@@ -58,6 +61,45 @@ const Details: FC<Props> = ({ profile }) => {
     router.push(`/messages/${conversationKey}`);
   };
 
+  const factoryContract = {
+    address: FACTORY,
+    abi: Factory,
+  }
+  const { data: userContracts } = useContractReads({
+    contracts: [
+      {
+        ...factoryContract,
+        functionName: 'creatorSet',
+        args: [profile?.ownedBy] //here should be using the stream manager address instead
+      },
+    ],
+  });
+  const [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+  console.log("user contracts:");
+  console.log(streamManager);
+  console.log(socialToken);
+  console.log(stakingContractAddress);
+
+  const { data: socialTokenBalance } = useBalance({
+    address: currentProfile?.ownedBy,
+    token: socialToken,
+    formatUnits: 18,
+    watch: true
+  });
+  console.log("social token balance: ", socialTokenBalance);
+
+
+  const { config } = usePrepareContractWrite({
+    address: stakingContractAddress,
+    abi: Staking,
+    functionName: 'stake',
+    args: [
+      socialTokenBalance?.value
+    ]
+  });
+
+  const { data, isLoading, isSuccess, write: stakeToken } = useContractWrite(config)
+
   const MetaDetails = ({ children, icon }: { children: ReactElement; icon: ReactElement }) => (
     <div className="flex gap-2 items-center">
       {icon}
@@ -66,6 +108,27 @@ const Details: FC<Props> = ({ profile }) => {
   );
 
   const followType = profile?.followModule?.__typename;
+
+  // hardcoded amounts
+  const subscriptionAmount = (10*1e18/3600/24/30).toFixed(0);
+
+
+  const forwarderContract = {
+    address: SUPERFLUID_FORWARDER,
+    abi: SuperfluidForwarder,
+  }
+
+  const { data: isStreamingFlowrate, isError } = useContractReads({
+    contracts: [
+      {
+        ...forwarderContract,
+        functionName: 'getFlowrate',
+        args: [USDCX, currentProfile?.ownedBy, streamManager] //here should be using the stream manager address instead
+      },
+    ],
+  });
+
+  const isSubscribed = Number(isStreamingFlowrate?.toString()).toString() >= subscriptionAmount;
 
   return (
     <div className="px-5 mb-4 space-y-5 sm:px-0">
@@ -133,10 +196,15 @@ const Details: FC<Props> = ({ profile }) => {
                   {currentProfile && <Message onClick={onMessageClick} />}
                 </div>
                 <div className="flex space-x-2 mt-2">
-                  <StreamFollow profile={profile} setFollowing={setFollowing} showText />
+                  <StreamFollow profile={profile} setFollowing={setFollowing} showText={isSubscribed ? "Subscribed!" : "Stream Follow"} />
                 </div>
                 <div className="flex space-x-2 mt-1">
-                  <span className="font-bold">${(profile?.handle).toUpperCase()}x: </span><UserBalance account={currentProfile?.ownedBy} token={USDCX} />
+                  <span className="font-bold">${((profile?.handle).toUpperCase()).split('.')[0]}x: </span><UserBalance account={currentProfile?.ownedBy} token={socialToken} />
+                </div>
+                <div className="flex space-x-2 mt-2">
+                  { isSubscribed &&
+                    (<Button variant="super" onClick={stakeToken}>Stake and Earn</Button>)
+                  }
                 </div>
               </>
             )
