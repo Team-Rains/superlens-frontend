@@ -54,7 +54,7 @@ export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SUPERFLUID_FORWARDER = '0xcfA132E353cB4E398080B9700609bb008eceB125';
 export const USDCX = '0x42bb40bf79730451b11f6de1cba222f17b87afd7'; // fUSDCx on Mumbai
 export const CFA = '0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873'; //CFA on Mumbai
-export const FACTORY = '0x5D71b104EDa9c3243b55a8f09b04C92B57bcB2bB'; // SuperLens Factory
+export const FACTORY = '0xB718130Ce920E232FF76Fb9977b7a9AD9f1D74bE'; // SuperLens Factory
 
 // Messages
 export const ERROR_MESSAGE = 'Something went wrong!';

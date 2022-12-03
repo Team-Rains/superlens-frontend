@@ -97,7 +97,8 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
       {
         ...forwarderContract,
         functionName: 'getFlowrate',
-        args: [USDCX, currentProfile?.ownedBy, streamManager] //here should be using the stream manager address instead
+        args: [USDCX, currentProfile?.ownedBy, streamManager], //here should be using the stream manager address instead
+        watch: true,
       },
     ],
   });

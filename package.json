@@ -29,6 +29,7 @@
   "dependencies": {
     "@ethersproject/abstract-signer": "^5.7.0",
     "@lens-protocol/sdk-gated": "^1.1.2",
+    "@superfluid-finance/sdk-core": "^0.5.8",
     "decimal.js": "^10.4.2",
     "omit-deep": "^0.3.0"
   }

@@ -37,6 +37,9 @@ import UserBalance from './../Shared/UserBalance';
 import { SuperfluidForwarder, Factory, Staking } from 'abis';
 import { SUPERFLUID_FORWARDER, USDCX, FACTORY} from 'data/constants';
 import { useContractReads, usePrepareContractWrite, useContractWrite, useBalance } from 'wagmi';
+import { ethers, providers } from 'ethers';
+import { Framework } from "@superfluid-finance/sdk-core";
+
 
 interface Props {
   profile: Profile;
@@ -50,6 +53,19 @@ const Details: FC<Props> = ({ profile }) => {
   const { resolvedTheme } = useTheme();
   const router = useRouter();
   const addProfileAndSelectTab = useMessageStore((state) => state.addProfileAndSelectTab);
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum!);
+
+  let sf;
+  (async () => {
+    sf = await Framework.create({
+      chainId: 80001, //i.e. 137 for matic
+      provider // i.e. the provider being used
+    });
+  })()
+ 
+  const signer = sf?.createSigner({ provider });
+  console.log(Framework);
 
   const onMessageClick = () => {
     if (!currentProfile) {
@@ -74,13 +90,12 @@ const Details: FC<Props> = ({ profile }) => {
       },
     ],
   });
-  console.log("user contracts before:");
-  console.log(userContracts);
   let streamManager, socialToken, stakingContractAddress, other;
   if(userContracts != undefined) {
     [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
   }
-  console.log("user contracts:");
+
+  console.log("user contracts: sm, st, stk");
   console.log(streamManager);
   console.log(socialToken);
   console.log(stakingContractAddress);
@@ -91,8 +106,6 @@ const Details: FC<Props> = ({ profile }) => {
     formatUnits: 18,
     watch: true
   });
-  console.log("social token balance: ", socialTokenBalance);
-
 
   const { config } = usePrepareContractWrite({
     address: stakingContractAddress,
