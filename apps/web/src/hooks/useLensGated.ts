@@ -16,8 +16,6 @@ import { Factory } from 'abis';
 const useLensGated = () => {
   const currentProfile = useAppStore((state) => state.currentProfile);
 
-  let streamManager, socialToken, stakingContractAddress, other;
-
   const factoryContract = {
     address: FACTORY,
     abi: Factory
@@ -28,13 +26,13 @@ const useLensGated = () => {
       {
         ...factoryContract,
         functionName: 'creatorSet',
-        args: [currentProfile?.ownedBy] //here should be using the stream manager address instead
+        args: [currentProfile?.ownedBy] 
       }
     ]
   });
-  if(userContracts != undefined) {
-    [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
-  }
+  
+  const [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+  
 
   console.log("The stream manager address is ", streamManager);
 

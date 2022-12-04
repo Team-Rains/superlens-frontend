@@ -38,9 +38,11 @@ interface Props {
   setFollowing: Dispatch<boolean>;
   setShowFollowModal: Dispatch<boolean>;
   again: boolean;
+  isSubscribed: boolean;
+  setOfContracts: string;
 }
 
-const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, again }) => {
+const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, again, isSubscribed, setOfContracts }) => {
   const currentProfile = useAppStore((state) => state.currentProfile);
 
   // hardcoded stuff
@@ -60,26 +62,12 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
     hasAmount = true;
   }
 
-  const forwarderContract = {
-    address: SUPERFLUID_FORWARDER,
-    abi: SuperfluidForwarder,
-  }
-
   const factoryContract = {
     address: FACTORY,
     abi: Factory,
   }
 
-  const { data: userContracts } = useContractReads({
-    contracts: [
-      {
-        ...factoryContract,
-        functionName: 'creatorSet',
-        args: [profile?.ownedBy] //here should be using the stream manager address instead
-      },
-    ],
-  });
-  const [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+  const [streamManager, socialToken, stakingContractAddress, ...other] = setOfContracts;
 
   const stakingContract = {
     address: stakingContractAddress,
@@ -92,18 +80,8 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
     formatUnits: 18,
     watch: true
   });
-  const { data: streamingFlowrate, isError } = useContractReads({
-    contracts: [
-      {
-        ...forwarderContract,
-        functionName: 'getFlowrate',
-        args: [USDCX, currentProfile?.ownedBy, streamManager], //here should be using the stream manager address instead
-        watch: true,
-      },
-    ],
-  });
-  const cleanFlowrate = Number(streamingFlowrate?.toString()).toString();
-  const isSubscribed = cleanFlowrate >= subscriptionAmount;
+
+  console.log("isSubscribed in FollowModule: ", isSubscribed);
   const { config } = usePrepareContractWrite({
     address: SUPERFLUID_FORWARDER,
     abi: SuperfluidForwarder,

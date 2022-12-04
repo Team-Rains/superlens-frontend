@@ -20,9 +20,11 @@ interface Props {
   setFollowing: Dispatch<boolean>;
   showText?: string;
   again?: boolean;
+  isSubscribed: boolean;
+  setOfContracts: string;
 }
 
-const StreamFollow: FC<Props> = ({ profile, setFollowing, showText = false, again = false }) => {
+const StreamFollow: FC<Props> = ({ profile, setFollowing, showText = false, again = false, isSubscribed, setOfContracts }) => {
   const [showFollowModal, setShowFollowModal] = useState(false);
 
   return (
@@ -55,6 +57,8 @@ const StreamFollow: FC<Props> = ({ profile, setFollowing, showText = false, agai
           setFollowing={setFollowing}
           setShowFollowModal={setShowFollowModal}
           again={again}
+          isSubscribed={isSubscribed}
+          setOfContracts={setOfContracts}
         />
       </Modal>
     </>

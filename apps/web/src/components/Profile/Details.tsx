@@ -45,7 +45,7 @@ interface Props {
   profile: Profile;
 }
 
-const Details: FC<Props> = ({ profile }) => {
+const Details: FC<Props> =  ({ profile }) => {
   const currentProfile = useAppStore((state) => state.currentProfile);
   const [following, setFollowing] = useState(profile?.isFollowedByMe);
   const [showMutualFollowersModal, setShowMutualFollowersModal] = useState(false);
@@ -54,19 +54,22 @@ const Details: FC<Props> = ({ profile }) => {
   const router = useRouter();
   const addProfileAndSelectTab = useMessageStore((state) => state.addProfileAndSelectTab);
 
+  /*
   const provider = new ethers.providers.Web3Provider(window.ethereum!);
 
   let sf;
-  (async () => {
+  ( async () => { 
     sf = await Framework.create({
       chainId: 80001, //i.e. 137 for matic
       provider // i.e. the provider being used
     });
-  })()
- 
-  const signer = sf?.createSigner({ provider });
-  console.log(Framework);
 
+  })();
+ 
+
+  const signer = sf?.createSigner({ provider });
+  console.log("Framework:", Framework);
+  */
   const onMessageClick = () => {
     if (!currentProfile) {
       return;
@@ -81,24 +84,23 @@ const Details: FC<Props> = ({ profile }) => {
     address: FACTORY,
     abi: Factory,
   }
+  let streamManager, socialToken, stakingContractAddress, other, setOfContracts;
+
   const { data: userContracts } = useContractReads({
     contracts: [
       {
         ...factoryContract,
         functionName: 'creatorSet',
         args: [profile?.ownedBy] //here should be using the stream manager address instead
-      },
-    ],
+      }
+    ]
   });
-  let streamManager, socialToken, stakingContractAddress, other;
-  if(userContracts != undefined) {
+  if(userContracts != undefined && userContracts[0] != null) {
+    console.log(userContracts);
     [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
+    setOfContracts = userContracts?.[0];
   }
-
-  console.log("user contracts: sm, st, stk");
-  console.log(streamManager);
-  console.log(socialToken);
-  console.log(stakingContractAddress);
+  console.log(userContracts);
 
   const { data: socialTokenBalance } = useBalance({
     address: currentProfile?.ownedBy,
@@ -136,17 +138,20 @@ const Details: FC<Props> = ({ profile }) => {
     abi: SuperfluidForwarder,
   }
 
-  const { data: isStreamingFlowrate, isError } = useContractReads({
+  const { data: streamingFlowrate, isError } = useContractReads({
     contracts: [
       {
         ...forwarderContract,
         functionName: 'getFlowrate',
-        args: [USDCX, currentProfile?.ownedBy, streamManager] //here should be using the stream manager address instead
+        args: [USDCX, currentProfile?.ownedBy, streamManager] 
       },
     ],
   });
 
-  const isSubscribed = Number(isStreamingFlowrate?.toString()).toString() >= subscriptionAmount;
+  console.log("streamManager; ", streamManager);
+  console.log(streamingFlowrate)
+  const isSubscribed = Number(streamingFlowrate?.toString()).toString() >= subscriptionAmount;
+  console.log("issubscribed: ", isSubscribed);
 
   return (
     <div className="px-5 mb-4 space-y-5 sm:px-0">
@@ -214,7 +219,13 @@ const Details: FC<Props> = ({ profile }) => {
                   {currentProfile && <Message onClick={onMessageClick} />}
                 </div>
                 <div className="flex space-x-2 mt-2">
-                  <StreamFollow profile={profile} setFollowing={setFollowing} showText={isSubscribed ? "Subscribed!" : "Stream Follow"} />
+                  <StreamFollow 
+                    profile={profile} 
+                    setFollowing={setFollowing} 
+                    showText={isSubscribed ? "Subscribed!" : "Stream Follow"} 
+                    isSubscribed={isSubscribed} 
+                    setOfContracts={setOfContracts}
+                  />
                 </div>
                 <div className="flex space-x-2 mt-1">
                   <span className="font-bold">${((profile?.handle).toUpperCase()).split('.')[0]}x: </span><UserBalance account={currentProfile?.ownedBy} token={socialToken} />
