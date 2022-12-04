@@ -24,7 +24,8 @@ const useContractSet = (targetUser: String) => {
     address: FACTORY,
     abi: Factory,
   }
-  let streamManager, socialToken, stakingContractAddress, other, contractSet;
+  let streamManager:any , socialToken:any , stakingContractAddress:any , other;
+  let contractSet: any;
 
   useEffect(() => {
     const { data: userContracts } = useContractReads({

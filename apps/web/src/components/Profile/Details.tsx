@@ -102,8 +102,6 @@ const Details: FC<Props> =  ({ profile }) => {
     ]
   });
 
-  const { data, isLoading, isSuccess, write: stakeToken } = useContractWrite(config)
-
   const MetaDetails = ({ children, icon }: { children: ReactElement; icon: ReactElement }) => (
     <div className="flex gap-2 items-center">
       {icon}
