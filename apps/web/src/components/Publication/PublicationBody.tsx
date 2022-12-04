@@ -18,8 +18,6 @@ interface Props {
 const PublicationBody: FC<Props> = ({ publication }) => {
   const { pathname } = useRouter();
   const showMore = publication?.metadata?.content?.length > 450 && pathname !== '/posts/[id]';
-  console.log("publication: ");
-  console.log(publication);
   const isSubscribed = useIsSubscribed(publication?.profile?.ownedBy);
 
   // instead of showing the content right away, just show a bit header or description
@@ -31,22 +29,14 @@ const PublicationBody: FC<Props> = ({ publication }) => {
 
 
   if (publication?.isGated) {
-    console.log("Publication is gated, attempting decrypt");
     try {
       hookLensGated.decryptPostMetadata(publication?.metadata).then((result) => {
-        console.log('The decrypted result is ', result);
         setDecryptedData(result);
       });
     } catch (error) {
       console.log(error);
     }
   }
-  
-  console.log("isSubscribed in PublicationBody: ", isSubscribed);
-  console.log("isGated in PublicationBody: ", publication?.isGated);
-  console.log(publication?.metadata?.content);
-  console.log("decrypted Data");
-  console.log(decryptedData);
 
   return (
     <div 

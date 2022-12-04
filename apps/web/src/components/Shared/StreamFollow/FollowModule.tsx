@@ -45,46 +45,16 @@ interface Props {
 const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, again }) => {
   const currentProfile = useAppStore((state) => state.currentProfile);
 
-  // hardcoded stuff
   const subscriptionAmount = (10*1e18/3600/24/30).toFixed(0);
+
   const contractSet = useContractSet(profile?.ownedBy);
   const isSubscribed = useIsSubscribed(profile?.ownedBy);
 
-  const { data: balanceData } = useBalance({
-    address: currentProfile?.ownedBy,
-    token: USDCX,
-    formatUnits: 18,
-    watch: true
-  });
-  let hasAmount = false;
-
-  if (balanceData && parseFloat(balanceData?.formatted) < parseFloat("1")) {
-    hasAmount = false;
-  } else {
-    hasAmount = true;
-  }
-
-  const factoryContract = {
-    address: FACTORY,
-    abi: Factory,
-  }
+  // not checking. Assume the user has USDCx
+  const hasAmount = true;
 
   const {streamManager, socialToken, stakingContractAddress} = contractSet;
 
-  console.log("about to start a stream to streamManager: ", streamManager);
-  const stakingContract = {
-    address: stakingContractAddress,
-    abi: Staking,
-  }
-  
-  const { data: socialTokenBalance } = useBalance({
-    address: currentProfile?.ownedBy,
-    token: socialToken,
-    formatUnits: 18,
-    watch: true
-  });
-
-  console.log("isSubscribed in FollowModule: ", isSubscribed);
   const { config } = usePrepareContractWrite({
     address: SUPERFLUID_FORWARDER,
     abi: SuperfluidForwarder,
@@ -98,8 +68,6 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
     ]
   })
   const { data, isLoading, isSuccess, write: startStream } = useContractWrite(config)
-  console.log("isSuccess:");
-  console.log(isSuccess);
 
   return (
     <div className="p-5">
@@ -110,7 +78,7 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
           tokenAddress={USDCX}
           tokenName="USDCx"
           flowRate="10"
-          isSubscribed={isSubscribed}
+          isSubscribed={isSubscribed || isSuccess}
         />
       </div>
       <div className="text-center py-2 space-x-1.5">
@@ -120,9 +88,12 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
           tokenAddress={socialToken}
           tokenName={`${((profile?.handle).toUpperCase()).split('.')[0]}`}
           flowRate="10"
-          isSubscribed={isSubscribed}
+          isSubscribed={isSubscribed || isSuccess}
         />
       </div>
+        <div className="flex text-center text-lg mt-4">
+          Community rewards:&nbsp;&nbsp;<UserBalance token={USDCX} account={stakingContractAddress} />&nbsp;USDCx
+        </div>
       <div className="pt-5 space-y-2">
         <div className="text-lg font-bold">BECOME A MAXI to:</div>
         <ul className="space-y-1 text-md text-gray-500">
@@ -168,6 +139,7 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
             )
           )
         }
+        
         
       </div>    
     </div>

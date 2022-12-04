@@ -39,7 +39,7 @@ import { SUPERFLUID_FORWARDER, USDCX, FACTORY} from 'data/constants';
 import { useContractReads, usePrepareContractWrite, useContractWrite, useBalance } from 'wagmi';
 import { ethers, providers } from 'ethers';
 import { Framework } from "@superfluid-finance/sdk-core";
-
+import useContractSet from "src/hooks/useContractSet";
 
 interface Props {
   profile: Profile;
@@ -53,7 +53,7 @@ const Details: FC<Props> =  ({ profile }) => {
   const { resolvedTheme } = useTheme();
   const router = useRouter();
   const addProfileAndSelectTab = useMessageStore((state) => state.addProfileAndSelectTab);
-
+  const contractSet = useContractSet(profile?.ownedBy);
   /*
   const provider = new ethers.providers.Web3Provider(window.ethereum!);
 
@@ -84,23 +84,7 @@ const Details: FC<Props> =  ({ profile }) => {
     address: FACTORY,
     abi: Factory,
   }
-  let streamManager, socialToken, stakingContractAddress, other, setOfContracts;
-
-  const { data: userContracts } = useContractReads({
-    contracts: [
-      {
-        ...factoryContract,
-        functionName: 'creatorSet',
-        args: [profile?.ownedBy] //here should be using the stream manager address instead
-      }
-    ]
-  });
-  if(userContracts != undefined && userContracts[0] != null) {
-    console.log(userContracts);
-    [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
-    setOfContracts = userContracts?.[0];
-  }
-  console.log(userContracts);
+  const {streamManager, socialToken, stakingContractAddress} = contractSet;
 
   const { data: socialTokenBalance } = useBalance({
     address: currentProfile?.ownedBy,
@@ -148,10 +132,7 @@ const Details: FC<Props> =  ({ profile }) => {
     ],
   });
 
-  console.log("streamManager; ", streamManager);
-  console.log(streamingFlowrate)
   const isSubscribed = Number(streamingFlowrate?.toString()).toString() >= subscriptionAmount;
-  console.log("issubscribed: ", isSubscribed);
 
   return (
     <div className="px-5 mb-4 space-y-5 sm:px-0">
@@ -218,26 +199,33 @@ const Details: FC<Props> =  ({ profile }) => {
                   <Follow profile={profile} setFollowing={setFollowing} showText />
                   {currentProfile && <Message onClick={onMessageClick} />}
                 </div>
-                <div className="flex space-x-2 mt-2">
+                
+              </>
+            )
+          ) : null}
+          <div className="flex space-x-2 mt-2">
                   <StreamFollow 
                     profile={profile} 
                     setFollowing={setFollowing} 
                     showText={isSubscribed ? "You're a Maxi!" : "Become a Maxi"} 
                     isSubscribed={isSubscribed} 
-                    setOfContracts={setOfContracts}
                   />
                 </div>
                 <div className="flex space-x-2 mt-1">
-                  <span className="font-bold">${((profile?.handle).toUpperCase()).split('.')[0]}x: </span><UserBalance account={currentProfile?.ownedBy} token={socialToken} />
+                  <span className="">${((profile?.handle).toUpperCase()).split('.')[0]} Balance:</span>
+                </div>
+                <div className="flex space-x-2 mt-1">
+                  <UserBalance account={currentProfile?.ownedBy} token={socialToken} />
                 </div>
                 <div className="flex space-x-2 mt-2">
                   { isSubscribed &&
                     (<Button variant="super" onClick={stakeToken}>Stake and Earn</Button>)
                   }
                 </div>
-              </>
-            )
-          ) : null}
+                <div className="space-x-2 mt-4">
+                  <div>Community rewards:</div>
+                  <div className="font-bold text-xl"><UserBalance token={USDCX} account={stakingContractAddress} />&nbsp;USDCx</div>
+                </div>
         </div>
         {currentProfile?.id !== profile?.id && (
           <>

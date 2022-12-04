@@ -19,7 +19,6 @@ interface Props {
 }
 
 const useIsSubscribed = (targetUser: String) => {
-  console.log("target: ", targetUser);
   const subscriptionAmount = (10*1e18/3600/24/30).toFixed(0);
 
   const currentProfile = useAppStore((state) => state.currentProfile);
