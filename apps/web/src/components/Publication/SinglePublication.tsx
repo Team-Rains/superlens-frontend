@@ -50,7 +50,9 @@ const SinglePublication: FC<Props> = ({
     : publication?.createdAt;
 
   return (
-    <article className="hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer first:rounded-t-xl last:rounded-b-xl p-5">
+    <article 
+      className={(publication?.isGated ? "bg-gray-300" : "hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer") + " first:rounded-t-xl last:rounded-b-xl p-5"}
+    >
       {feedItem ? (
         <EventType feedItem={feedItem} showType={showType} showThread={showThread} />
       ) : (

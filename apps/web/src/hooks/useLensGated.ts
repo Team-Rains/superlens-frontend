@@ -12,27 +12,14 @@ import { useAppStore } from 'src/store/app';
 import { useContractReads } from 'wagmi';
 import { FACTORY } from 'data/constants';
 import { Factory } from 'abis';
+import useContractSet from './useContractSet';
 
 const useLensGated = () => {
   const currentProfile = useAppStore((state) => state.currentProfile);
+  console.log("profile: ", currentProfile);
+  const contractSet = useContractSet(currentProfile?.ownedBy);
 
-  const factoryContract = {
-    address: FACTORY,
-    abi: Factory
-  };
-
-  const { data: userContracts } = useContractReads({
-    contracts: [
-      {
-        ...factoryContract,
-        functionName: 'creatorSet',
-        args: [currentProfile?.ownedBy] 
-      }
-    ]
-  });
-  
-  const [streamManager, socialToken, stakingContractAddress, ...other] = userContracts?.[0];
-  
+  const { streamManager } = contractSet;
 
   console.log("The stream manager address is ", streamManager);
 

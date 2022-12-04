@@ -14,7 +14,7 @@ const EtherFormatted: FC<{ wei: BigNumberish }> = ({ wei }) => {
   const ether = ethers.utils.formatEther(wei);
   const isRounded = ether.split(".")[1].length > etherDecimalPlaces;
   const finalValue = new Decimal(ether).toDP(etherDecimalPlaces).toFixed();
-  return <>{isRounded && "~"}{finalValue}{(finalValue*100000%1==0) && "0"}</>;
+  return <>{finalValue}{(finalValue*100000%1==0) && "0"}</>;
 };
 
 export interface FlowingBalanceProps {

@@ -63,8 +63,7 @@ const FullPublication: FC<Props> = ({ publication }) => {
             <HiddenPublication type={publication.__typename} />
           ) : (
             <>
-              {/* <PublicationBody publication={publication} /> */}
-              <p>{decryptedData?.content}</p>
+              <PublicationBody publication={publication} />
               <div className="text-sm text-gray-500 my-3">
                 <span>{dayjs(new Date(timestamp)).format('hh:mm A · MMM D, YYYY')}</span>
                 {publication?.appId ? <span> · Posted via {getAppName(publication?.appId)}</span> : null}

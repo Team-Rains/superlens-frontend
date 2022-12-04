@@ -32,21 +32,23 @@ import StreamPiece from "../StreamPiece";
 import BalancePiece from "../BalancePiece";
 import UserBalance from '../UserBalance';
 import conversationMatchesProfile from '@lib/conversationMatchesProfile';
+import useContractSet from "src/hooks/useContractSet";
+import useIsSubscribed from "src/hooks/useIsSubscribed";
 
 interface Props {
   profile: Profile;
   setFollowing: Dispatch<boolean>;
   setShowFollowModal: Dispatch<boolean>;
   again: boolean;
-  isSubscribed: boolean;
-  setOfContracts: string;
 }
 
-const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, again, isSubscribed, setOfContracts }) => {
+const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, again }) => {
   const currentProfile = useAppStore((state) => state.currentProfile);
 
   // hardcoded stuff
   const subscriptionAmount = (10*1e18/3600/24/30).toFixed(0);
+  const contractSet = useContractSet(profile?.ownedBy);
+  const isSubscribed = useIsSubscribed(profile?.ownedBy);
 
   const { data: balanceData } = useBalance({
     address: currentProfile?.ownedBy,
@@ -67,8 +69,9 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
     abi: Factory,
   }
 
-  const [streamManager, socialToken, stakingContractAddress, ...other] = setOfContracts;
+  const {streamManager, socialToken, stakingContractAddress} = contractSet;
 
+  console.log("about to start a stream to streamManager: ", streamManager);
   const stakingContract = {
     address: stakingContractAddress,
     abi: Staking,
@@ -94,7 +97,9 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
       "0x"
     ]
   })
-  const { data, isLoading, isSuccess, write } = useContractWrite(config)
+  const { data, isLoading, isSuccess, write: startStream } = useContractWrite(config)
+  console.log("isSuccess:");
+  console.log(isSuccess);
 
   return (
     <div className="p-5">
@@ -119,7 +124,7 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
         />
       </div>
       <div className="pt-5 space-y-2">
-        <div className="text-lg font-bold">Perks you get</div>
+        <div className="text-lg font-bold">BECOME A MAXI to:</div>
         <ul className="space-y-1 text-md text-gray-500">
           <li className="flex space-x-2 tracking-normal leading-6">
             <div>•</div>
@@ -147,7 +152,7 @@ const FollowModule: FC<Props> = ({ profile, setFollowing, setShowFollowModal, ag
                   className="text-sm !px-3 !py-1.5 mt-5"
                   variant="super"
                   outline
-                  onClick={() => write?.() }
+                  onClick={() => startStream?.() }
                   icon={(<StarIcon className="w-4 h-4" />)}
                 >
                   Super follow {again ? 'again' : 'now'}

@@ -222,7 +222,7 @@ const Details: FC<Props> =  ({ profile }) => {
                   <StreamFollow 
                     profile={profile} 
                     setFollowing={setFollowing} 
-                    showText={isSubscribed ? "Subscribed!" : "Stream Follow"} 
+                    showText={isSubscribed ? "You're a Maxi!" : "Become a Maxi"} 
                     isSubscribed={isSubscribed} 
                     setOfContracts={setOfContracts}
                   />
